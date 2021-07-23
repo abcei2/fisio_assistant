@@ -15,7 +15,7 @@ auth_token = ""
 
 @csrf_exempt 
 def bot(request):
-    print(request)
+    print(request.body)
     incoming_msg = request.values.get('Body', '').lower()
     from_who = request.values.get('From', '').lower()
     print(from_who, incoming_msg)
