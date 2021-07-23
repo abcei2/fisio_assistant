@@ -1,17 +1,12 @@
 from django.shortcuts import render
 
 import requests
-from twilio.twiml.messaging_response import MessagingResponse
-
-from twilio.rest import Client
 
 
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
-auth_token = "36163ffb00825dcb98027c9403add994"
-
-client = Client(account_sid, auth_token)
+account_sid = ""
+auth_token = ""
 
 # 1). Sacar número del que envia.
 # 2). Intentar enviar el video
