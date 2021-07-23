@@ -1,6 +1,8 @@
 from django.shortcuts import render
 
 import requests
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 # Find your Account SID and Auth Token at twilio.com/console
@@ -11,6 +13,7 @@ auth_token = ""
 # 1). Sacar número del que envia.
 # 2). Intentar enviar el video
 
+@csrf_exempt 
 def bot(request):
     print(request)
     incoming_msg = request.values.get('Body', '').lower()
