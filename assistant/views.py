@@ -12,8 +12,6 @@ account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
 auth_token = "36163ffb00825dcb98027c9403add994"
 
 client = Client(account_sid, auth_token)
-app = Flask(__name__)
-
 
 # 1). Sacar número del que envia.
 # 2). Intentar enviar el video
@@ -44,7 +42,3 @@ def bot(request):
     if not responded:
         msg.body('I only know about famous quotes and cats, sorry!')
     return str(resp)
-
-
-if __name__ == '__main__':
-    app.run(host ="0.0.0.0")
