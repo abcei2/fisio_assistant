@@ -1,10 +1,38 @@
 from django.contrib import admin
-from assistant.models import Videos, Entity
+from django.db import models
+from assistant.models import Video, Entity, VirtualSession, VirtualSessionVideo
 from django.contrib.admin.helpers import ActionForm
-from django import forms
+from django.forms import TextInput, Textarea
 
 
-class VideosAdmin(admin.ModelAdmin):
+        
+
+class VirtualSessionVideoInline(admin.TabularInline):
+    model = VirtualSessionVideo
+    classes = ["collapse"]
+    extra = 0
+    formfield_overrides = {
+        models.CharField: {"widget": TextInput(attrs={"size": "20"})},
+        models.TextField: {"widget": Textarea(attrs={"rows": 4, "cols": 40})},
+    }
+    
+class VirtualSessionAdmin(admin.ModelAdmin):
+    inlines = [
+        VirtualSessionVideoInline,
+    ]
+    
+    list_display = ['specialist','patient', 'user_authorized','user_notificated','start_time','already_started']
+
+    def add_view(self, request, extra_content=None):
+        groups=list(request.user.groups.all())
+        if len(groups)>0:
+            if str(groups[0]) == "specialist":    
+                self.exclude = ('specialist', 'user_authorized', 'user_notificated', )
+            else:                            
+                self.exclude = ('user_authorized', 'user_notificated', )
+        return super(VirtualSessionAdmin, self).add_view(request)
+
+class VideoAdmin(admin.ModelAdmin):
     list_display = ['title', 'source_link']
     def add_view(self, request, extra_context=None):
         
@@ -16,7 +44,7 @@ class VideosAdmin(admin.ModelAdmin):
                 self.exclude = ('entity','creator', )
             
             
-        return super(VideosAdmin, self).add_view(request)
+        return super(VideoAdmin, self).add_view(request)
     
     def save_model(self, request, obj, form, change):
         """
@@ -36,4 +64,5 @@ class EntityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Entity, EntityAdmin)
-admin.site.register(Videos, VideosAdmin)
+admin.site.register(Video, VideoAdmin)
+admin.site.register(VirtualSession, VirtualSessionAdmin)

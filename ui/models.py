@@ -9,7 +9,9 @@ class Entity(BaseModel):
   
 class User(AbstractUser, BaseModel):
     legal_id = models.CharField(max_length=64, unique=True)
-    whatsapp_number = models.CharField(max_length=32, unique=True)
+    whatsapp_number = models.CharField(max_length=32, unique=True)    
+    notificated = models.BooleanField(default=False, verbose_name="El usuario ha sido notificado")
+    authorized = models.BooleanField(default=False, verbose_name="Se recibe confirmación para mensajería libre")
 
 class UserEntity(BaseModel):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE, verbose_name="Entidad")
