@@ -1,2 +1,6 @@
 core/__pycache__
 assistant/__pycache__/
+assistant/migrations/__pycache__/
+ui/__pycache__/
+ui/migrations/__pycache__/
+db.sqlite3
