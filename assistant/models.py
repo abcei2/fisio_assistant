@@ -3,9 +3,7 @@ from ui.models import Entity, User
 from core.model_utils import BaseModel  
 from django.utils.functional import cached_property
 from django.utils import timezone
-
-# Create your models here.
-
+ 
 
 class Video(BaseModel):    
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE, verbose_name="Entidad")
@@ -24,8 +22,9 @@ class VirtualSession(BaseModel):
         auto_now_add=False, verbose_name="Tiempo de Inicio"
     )
     
-    user_notificated = models.BooleanField(default=False, verbose_name="La sesión notifica al usuario")
-    user_authorized = models.BooleanField(default=False, verbose_name="La sesión recibe confirmación del usuario")
+    user_notificated = models.BooleanField(default=False, verbose_name="Notificación al usuario")
+    user_authorized = models.BooleanField(default=False, verbose_name="Confirmación del usuario")
+
     
     @cached_property
     def already_started(self):

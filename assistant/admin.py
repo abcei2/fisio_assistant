@@ -5,8 +5,6 @@ from django.contrib.admin.helpers import ActionForm
 from django.forms import TextInput, Textarea
 
 
-        
-
 class VirtualSessionVideoInline(admin.TabularInline):
     model = VirtualSessionVideo
     classes = ["collapse"]
@@ -21,7 +19,11 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         VirtualSessionVideoInline,
     ]
     
-    list_display = ['specialist','patient', 'user_authorized','user_notificated','start_time','already_started']
+    list_display = ['specialist','patient', 'user_authorized','user_notificated','start_time','already_started','patient_first_join']
+
+    def patient_first_join(self, obj):        
+        return "✅" if obj.patient.first_join  else "❌"
+    patient_first_join.short_description = 'Autoización principal' 
 
     def add_view(self, request, extra_content=None):
         groups=list(request.user.groups.all())
