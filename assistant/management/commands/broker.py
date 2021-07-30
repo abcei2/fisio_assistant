@@ -1,19 +1,20 @@
 
 from django.core.management.base import BaseCommand
 from assistant.models import VirtualSession
-from ui.models import User
 import time
 
 from twilio.rest import Client
 
 ERROR_CODES={
-    "63015":"Phone must join on sandbox"
+    "63015":"Phone must join on sandbox",
+    
+    "63016":"Failed to send freeform message because you are outside the allowed window. Please use a Template.",
+      
 }
-
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
 account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
-auth_token = "f7f05021caa1806f8724241d4a5d77ca"
+auth_token = "b3b710c9cf27406be6761891b24864e0"
 client = Client(account_sid, auth_token)
 # template_1 = 'Fisio-Online'
 # template_2 = '0000'
@@ -22,6 +23,29 @@ client = Client(account_sid, auth_token)
 #     body=f'Your {template_1} code is {template_2}',
 #     to='whatsapp:+573117064404'
 # )
+
+def session_without_errors(session, error_code):
+    if error_code== "63015":  
+        session.patient.first_join = False     
+        session.patient.authorized = False   
+        session.patient.notified = False                  
+        session.patient.save()     
+        session.user_notified = False   
+        session.user_authorized = False   
+        session.session_status_message =  ERROR_CODES["63015"]
+        session.save()                 
+        return False
+    elif error_code == "63016":         
+        session.patient.notified = False          
+        session.patient.authorized = False     
+        session.patient.save()    
+        session.user_notified = False       
+        session.user_authorized = False      
+        session.session_status_message =  ERROR_CODES["63016"] 
+        session.save()    
+        return False 
+    else:        
+        return True
 
 def send_message(body, recipient, sender="4155238886",rec_county_id="+57",sender_county_id="+1"):    
     message = client.messages.create(
@@ -32,32 +56,66 @@ def send_message(body, recipient, sender="4155238886",rec_county_id="+57",sender
     return message
     
 def send_notification(send_message_timer,send_message_period):
-    notifications = [obj for obj in VirtualSession.objects.all() if obj.patient.first_join and obj.already_started and not obj.user_notificated ]
-    num_noti_to_send = len(notifications)
+
+    sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.first_join and obj.already_started and not obj.user_notified and not obj.user_authorized and not obj.session_done ]
+    num_noti_to_send = len(sessions)
+    while num_noti_to_send>0:
+
+        if time.time()-send_message_timer > send_message_period:
+            session = sessions[num_noti_to_send-1]
+            if not session.patient.notified:
+                whatsapp_number = session.patient.whatsapp_number
+                if session.patient.first_join:                      
+                    template_1 = 'Fisio-Online'
+                    template_2 = '0000 please write something :v'
+                    body = f'Your {template_1} code is {template_2}'
+                    message=send_message(body, whatsapp_number)
+                        
+                    while message.status == "queued":                            
+                        message = client.messages(message.sid).fetch()  
+                    send_message_timer = time.time()
+
+                    if session_without_errors(session, str(message.error_code)):      
+                        session.user_notified = True          
+                        session.session_status_message = "El usuario ha sido notificado"
+                        session.save()     
+                        session.patient.notified = True          
+                        session.patient.save()   
+                        
+                        print("noti send")
+            else:
+                session.user_notified = True          
+                session.save()     
+
+            num_noti_to_send = num_noti_to_send - 1 
+    if len(sessions)==0:
+        print("Seems that all session were send")
+    
+
+def send_free_message(body,send_message_timer,send_message_period):
+    sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.first_join and obj.already_started and obj.user_notified and obj.user_authorized and not obj.session_done ]
+    num_message_to_send = len(sessions)
     while num_noti_to_send>0:
         if time.time()-send_message_timer > send_message_period:
-            notification = notifications[num_noti_to_send-1]
-            whatsapp_number = notification.patient.whatsapp_number
-            if notification.patient.first_join:                      
-                template_1 = 'Fisio-Online'
-                template_2 = '0000'
-                body = f'Your {template_1} code is {template_2}'
+            session = sessions[num_message_to_send-1]
+            whatsapp_number = session.patient.whatsapp_number
+            if session.patient.first_join:                      
                 message=send_message(body, whatsapp_number)
                     
                 while message.status == "queued":                            
-                    message = client.messages(message.sid).fetch()  
-
-                if str(message.error_code) in ERROR_CODES.keys():         
-                    notification.patient.first_join = False                    
-                    notification.patient.save()                       
-                    print(ERROR_CODES[str(message.error_code)])
-                else:
+                    message = client.messages(message.sid).fetch()                  
+                      
+                if session_without_errors(session, str(message.error_code)):      
                     print("noti send")
-                num_noti_to_send = num_noti_to_send - 1 
+
+
+                num_message_to_send = num_message_to_send - 1 
                 send_message_timer = time.time()
-    if len(notifications)==0:
-        print("Seems that all notification were send")
-    
+    if len(sessions)==0:
+        print("Seems that all session were notified")
+
+
+
 class Command(BaseCommand):
     help = 'Displays current time'
     def handle(self, *args, **kwargs):

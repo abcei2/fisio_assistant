@@ -19,7 +19,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         VirtualSessionVideoInline,
     ]
     
-    list_display = ['specialist','patient', 'user_authorized','user_notificated','start_time','already_started','patient_first_join']
+    list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started','patient_first_join','session_done','session_status_message']
 
     def patient_first_join(self, obj):        
         return "✅" if obj.patient.first_join  else "❌"
@@ -29,10 +29,17 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         groups=list(request.user.groups.all())
         if len(groups)>0:
             if str(groups[0]) == "specialist":    
-                self.exclude = ('specialist', 'user_authorized', 'user_notificated', )
+                self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
             else:                            
-                self.exclude = ('user_authorized', 'user_notificated', )
+                self.exclude = ('session_status_message','session_done','user_authorized', 'user_notified', )
         return super(VirtualSessionAdmin, self).add_view(request)
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        if str(list(request.user.groups.all())[0]) == "specialist":
+            obj.specialist = request.user      
+        obj.save()
 
 class VideoAdmin(admin.ModelAdmin):
     list_display = ['title', 'source_link']
