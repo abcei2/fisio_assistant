@@ -33,6 +33,9 @@ class VirtualSessionAdmin(admin.ModelAdmin):
     list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started','patient_first_join','session_done','session_status_message']
 
     def has_change_permission(self, request, obj=None):
+        '''
+            specialist can change session only if haven't started
+        '''
         codename = get_permission_codename('change', self.opts)
         has_permission = request.user.has_perm("%s.%s" % (self.opts.app_label, codename)) and  (obj.already_started == "❌" if obj else False )
         if request.user.is_superuser or has_permission:
@@ -40,12 +43,13 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         return False
 
     def get_queryset(self, request):
+        '''
+            showing up just specialist created sessions
+        '''
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        groups = list(request.user.groups.all())
-        group = groups[0] if len(groups)>0 else ["no group"]
-        return qs.filter(specialist__groups__name = group)
+        return qs.filter(specialist=request.user)
 
     def patient_first_join(self, obj):        
         return "✅" if obj.patient.first_join  else "❌"
@@ -70,11 +74,11 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             else:                            
                 self.exclude = ('session_status_message','session_done','user_authorized', 'user_notified', )
         return super(VirtualSessionAdmin, self).add_view(request)
+
     def save_model(self, request, obj, form, change):
         """
         Given a model instance save it to the database.
         """
-        print(request.user.groups.all())
         if str(list(request.user.groups.all())[0]) == "specialist":
             obj.specialist = request.user      
         obj.save()
