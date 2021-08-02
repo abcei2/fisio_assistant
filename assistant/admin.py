@@ -19,6 +19,7 @@ class VirtualSessionVideoInline(admin.TabularInline):
 
 class VirtualSessionForm(forms.ModelForm):
     patient = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='patient'), empty_label=None)
+    specialist = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='specialist'), empty_label=None)
     class Meta:
         model = VirtualSession
         exclude = []
@@ -38,7 +39,13 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             return True
         return False
 
-    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        groups = list(request.user.groups.all())
+        group = groups[0] if len(groups)>0 else ["no group"]
+        return qs.filter(specialist__groups__name = group)
 
     def patient_first_join(self, obj):        
         return "✅" if obj.patient.first_join  else "❌"
@@ -47,12 +54,12 @@ class VirtualSessionAdmin(admin.ModelAdmin):
     
     def change_view(self, request, object_id, extra_content=None):
         
-        groups=list(request.user.groups.all())
-        if len(groups)>0:
-            if str(groups[0]) == "specialist":    
-                self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
-            else:                            
-                self.exclude = ('session_status_message','session_done','user_authorized', 'user_notified', )
+        if not request.user.is_superuser:
+            groups=list(request.user.groups.all())
+            if len(groups)>0:
+                if str(groups[0]) == "specialist":    
+                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
+            
         return super(VirtualSessionAdmin, self).change_view(request, object_id)
 
     def add_view(self, request, extra_content=None):
