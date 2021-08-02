@@ -13,8 +13,8 @@ ERROR_CODES={
 }
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
-auth_token = "b3b710c9cf27406be6761891b24864e0"
+account_sid = ""
+auth_token = ""
 client = Client(account_sid, auth_token)
 # template_1 = 'Fisio-Online'
 # template_2 = '0000'
@@ -91,29 +91,6 @@ def send_notification(send_message_timer,send_message_period):
     if len(sessions)==0:
         print("Seems that all session were send")
     
-
-def send_free_message(body,send_message_timer,send_message_period):
-    sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.first_join and obj.already_started and obj.user_notified and obj.user_authorized and not obj.session_done ]
-    num_message_to_send = len(sessions)
-    while num_noti_to_send>0:
-        if time.time()-send_message_timer > send_message_period:
-            session = sessions[num_message_to_send-1]
-            whatsapp_number = session.patient.whatsapp_number
-            if session.patient.first_join:                      
-                message=send_message(body, whatsapp_number)
-                    
-                while message.status == "queued":                            
-                    message = client.messages(message.sid).fetch()                  
-                      
-                if session_without_errors(session, str(message.error_code)):      
-                    print("noti send")
-
-
-                num_message_to_send = num_message_to_send - 1 
-                send_message_timer = time.time()
-    if len(sessions)==0:
-        print("Seems that all session were notified")
-
 
 
 class Command(BaseCommand):
