@@ -51,7 +51,11 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             return qs
         return qs.filter(specialist=request.user)
 
-    def patient_first_join(self, obj):        
+    def patient_first_join(self, obj):       
+        '''
+            when a patient have joined on sand box of filling some concent 
+            to recieve notifications and messages.
+        ''' 
         return "✅" if obj.patient.first_join  else "❌"
     patient_first_join.short_description = 'Autoización principal' 
 
@@ -67,17 +71,17 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         return super(VirtualSessionAdmin, self).change_view(request, object_id)
 
     def add_view(self, request, extra_content=None):
-        groups=list(request.user.groups.all())
-        if len(groups)>0:
-            if str(groups[0]) == "specialist":    
-                self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
-            else:                            
-                self.exclude = ('session_status_message','session_done','user_authorized', 'user_notified', )
+        
+        if not request.user.is_superuser:
+            groups=list(request.user.groups.all())
+            if len(groups)>0:
+                if str(groups[0]) == "specialist":    
+                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
         return super(VirtualSessionAdmin, self).add_view(request)
 
     def save_model(self, request, obj, form, change):
         """
-        Given a model instance save it to the database.
+            when user are specialist save himself
         """
         if str(list(request.user.groups.all())[0]) == "specialist":
             obj.specialist = request.user      

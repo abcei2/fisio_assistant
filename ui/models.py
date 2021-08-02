@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from core.model_utils import BaseModel  
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 class Entity(BaseModel):
     legal_id = models.CharField(max_length=64, unique=True)
@@ -15,7 +15,7 @@ class User(AbstractUser, BaseModel):
     authorized = models.BooleanField(default=False, verbose_name="Se recibe confirmación para mensajería libre/acepta términos")
     first_join = models.BooleanField(default=True, verbose_name="El usuario ha autorizado recibir mensajes")
 
-    authorization_time = models.DateTimeField(auto_now_add=True, verbose_name="Tiempo en que el usuario autoriza recibir mensajes" )    
+    authorization_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = datetime.now )    
 
     def free_way_messages(self):
         print(self.authorization_time, self.authorization_time > timedelta(days = 1), self.authorized ,self.notified)
