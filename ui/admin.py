@@ -5,5 +5,7 @@ from ui.models import User
 
 
 class UserAdmin(admin.ModelAdmin):
-    pass
+    
+    list_display = ['whatsapp_number','notified', 'authorized','first_join']
+
 admin.site.register(User, UserAdmin)
