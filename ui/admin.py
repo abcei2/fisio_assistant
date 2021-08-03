@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     
-    list_display = ['patient_name','patient_last_name','authorization_time','whatsapp_number','notified', 'authorized','first_join']
+    list_display = ['patient_name','patient_last_name','authorization_time','whatsapp_number', 'authorized','first_join']
 
     @admin.display(description='Nombre',)   
     def patient_name(self, obj):
@@ -59,12 +59,13 @@ class UserAdmin(admin.ModelAdmin):
             my_group.user_set.add(obj)
         
     def change_view(self, request, object_id, extra_content=None):
+        
         if not request.user.is_superuser:
             groups=list(request.user.groups.all())
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
              
-                    self.fields = ('whatsapp_number','legal_id','first_name', 'last_name','notified', 'authorized','first_join' )
+                    self.fields = ('whatsapp_number','legal_id','first_name', 'last_name', 'authorized','first_join' )
         else: 
             
             self.fields = ( )

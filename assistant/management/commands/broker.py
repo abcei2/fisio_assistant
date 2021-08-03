@@ -14,8 +14,8 @@ ERROR_CODES={
 }
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = ""
-auth_token = ""
+account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
+auth_token = "b8633bea2a1ad74fda376fdde9021286"
 client = Client(account_sid, auth_token)
 # template_1 = 'Fisio-Online'
 # template_2 = '0000'
@@ -28,8 +28,7 @@ client = Client(account_sid, auth_token)
 def session_without_errors(session, error_code):
     if error_code== "63015":  
         session.patient.first_join = False     
-        session.patient.authorized = False   
-        session.patient.notified = False                  
+        session.patient.authorized = False                
         session.patient.save()     
         session.user_notified = False   
         session.user_authorized = False   
@@ -37,7 +36,6 @@ def session_without_errors(session, error_code):
         session.save()                 
         return False
     elif error_code == "63016":         
-        session.patient.notified = False          
         session.patient.authorized = False     
         session.patient.save()    
         session.user_notified = False       
@@ -64,7 +62,7 @@ def send_notification(send_message_timer,send_message_period):
 
         if time.time()-send_message_timer > send_message_period:
             session = sessions[num_noti_to_send-1]
-            if not session.patient.notified:
+            if not session.user_notified:
                 whatsapp_number = session.patient.whatsapp_number
                 if session.patient.first_join:                      
                     template_1 = 'this momment'
@@ -80,8 +78,6 @@ def send_notification(send_message_timer,send_message_period):
                         session.user_notified = True          
                         session.session_status_message = "El usuario ha sido notificado"
                         session.save()     
-                        session.patient.notified = True          
-                        session.patient.save()   
                         
             else:
                 session.user_notified = True          
@@ -102,7 +98,7 @@ class Command(BaseCommand):
         send_message_period = 1 
         send_message_timer = time.time()
         # Time to query which user is outside 24h free message sessions in seconds
-        query_user_auth_period = 10 
+        query_user_auth_period = 10
         query_user_auth_timer = time.time()
         while True:
             if time.time()-query_session_timer > query_sessions_period:
@@ -110,7 +106,7 @@ class Command(BaseCommand):
                 send_notification(send_message_timer,send_message_period)
                 query_session_timer = time.time()
 
-            # if time.time()-query_user_auth_timer > query_user_auth_period:
-            #     for user in User.objects.all():
-            #         user.free_way_messages()
-            #     query_user_auth_timer = time.time()
+            if time.time()-query_user_auth_timer > query_user_auth_period:
+                for user in User.objects.all():
+                    user.free_way_messages()
+                query_user_auth_timer = time.time()
