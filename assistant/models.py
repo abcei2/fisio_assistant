@@ -15,8 +15,8 @@ class Video(BaseModel):
     )
     
 class VirtualSession(BaseModel):    
-    patient = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name="Paciente", related_name='patient', null=True)
-    specialist = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name="Especialista",related_name='specialist', null=True)
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Paciente", related_name='patient', null=True)
+    specialist = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Especialista",related_name='specialist', null=True)
     description_message = models.TextField(max_length=1024, verbose_name="Mensaje de asistencia", blank = True, default="")
     start_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo de Inicio" )    
     session_status_message = models.CharField(max_length=256, verbose_name="Stado de la sesión", default="La sesión ha sido programada.")

@@ -18,10 +18,11 @@ class User(AbstractUser, BaseModel):
     authorization_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = datetime.now )    
 
     def free_way_messages(self):
-        print(self.authorization_time, self.authorization_time > timedelta(days = 1), self.authorized ,self.notified)
-        if (self.authorized or self.notified ) and self.authorization_time > timedelta(days = 1):
+        print(self.authorization_time, datetime.now() > self.authorization_time+timedelta(days = 1), self.authorized ,self.notified)
+        if (self.authorized or self.notified ) and datetime.now() > self.authorization_time+timedelta(days = 1):
             self.authorized = False
             self.notified = False
+            self.save()
 
     
 

@@ -2,6 +2,7 @@
 from django.core.management.base import BaseCommand
 from assistant.models import VirtualSession
 import time
+from ui.models import User
 
 from twilio.rest import Client
 
@@ -66,9 +67,9 @@ def send_notification(send_message_timer,send_message_period):
             if not session.patient.notified:
                 whatsapp_number = session.patient.whatsapp_number
                 if session.patient.first_join:                      
-                    template_1 = 'Fisio-Online'
-                    template_2 = '0000 please write something :v'
-                    body = f'Your {template_1} code is {template_2}'
+                    template_1 = 'this momment'
+                    template_2 = '- Responda "si" o "no" para continuar la conversación'
+                    body = f'Your appointment is coming up on {template_1} at {template_2}'
                     message=send_message(body, whatsapp_number)
                         
                     while message.status == "queued":                            
@@ -82,7 +83,6 @@ def send_notification(send_message_timer,send_message_period):
                         session.patient.notified = True          
                         session.patient.save()   
                         
-                        print("noti send")
             else:
                 session.user_notified = True          
                 session.save()     
@@ -92,17 +92,25 @@ def send_notification(send_message_timer,send_message_period):
         print("Seems that all session were send")
     
 
-
 class Command(BaseCommand):
     help = 'Displays current time'
     def handle(self, *args, **kwargs):
-        
+        # Time to query virtual sessions in seconds
+        query_sessions_period = 1 
         query_session_timer = time.time()
+        # Time to send any message in seconds (depends on query a virtual session)
+        send_message_period = 1 
         send_message_timer = time.time()
-        query_sessions_period = 1 # Time to query virtual sessions in seconds
-        send_message_period = 1 # Time to send any message in seconds
+        # Time to query which user is outside 24h free message sessions in seconds
+        query_user_auth_period = 10 
+        query_user_auth_timer = time.time()
         while True:
             if time.time()-query_session_timer > query_sessions_period:
                 
                 send_notification(send_message_timer,send_message_period)
                 query_session_timer = time.time()
+
+            # if time.time()-query_user_auth_timer > query_user_auth_period:
+            #     for user in User.objects.all():
+            #         user.free_way_messages()
+            #     query_user_auth_timer = time.time()

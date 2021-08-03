@@ -19,11 +19,12 @@ class VirtualSessionVideoInline(admin.TabularInline):
 
 class VirtualSessionForm(forms.ModelForm):
     patient = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='patient'), empty_label=None)
-    specialist = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='specialist'), empty_label=None)
+    # specialist = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='specialist'), empty_label=None)
     class Meta:
         model = VirtualSession
         exclude = []
 
+@admin.register(VirtualSession)
 class VirtualSessionAdmin(admin.ModelAdmin):
     form = VirtualSessionForm
     inlines = [
@@ -87,6 +88,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             obj.specialist = request.user      
         obj.save()
 
+@admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ['title', 'source_link']
     def add_view(self, request, extra_context=None):
@@ -105,19 +107,18 @@ class VideoAdmin(admin.ModelAdmin):
         """
         Given a model instance save it to the database.
         """
-        if str(list(request.user.groups.all())[0]) == "specialist":
-            obj.entity = Entity.objects.all()[0]
-            obj.creator = request.user      
+        groups=list(request.user.groups.all())
+        if len(groups)>0:
+            if str(groups[0]) == "specialist":
+                obj.entity = Entity.objects.all()[0]
+                obj.creator = request.user      
         obj.save()
 
     
+@admin.register(Entity)
 class EntityAdmin(admin.ModelAdmin):
     
     def add_view(self, request, extra_content=None):
         
         return super(EntityAdmin, self).add_view(request)
 
-
-admin.site.register(Entity, EntityAdmin)
-admin.site.register(Video, VideoAdmin)
-admin.site.register(VirtualSession, VirtualSessionAdmin)
