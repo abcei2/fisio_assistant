@@ -72,5 +72,7 @@ def bot(request):
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
     msg.body(body)
     print(body)
-    
-    return HttpResponse(str(resp))
+    if body:
+        return HttpResponse(str(resp))
+    else:
+        return HttpResponse("")
