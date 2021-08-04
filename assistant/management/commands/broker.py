@@ -14,8 +14,8 @@ ERROR_CODES={
 }
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = "AC0d15ec2e3c206afdff8251c3b073945d"
-auth_token = "b8633bea2a1ad74fda376fdde9021286"
+account_sid = ""
+auth_token = ""
 client = Client(account_sid, auth_token)
 # template_1 = 'Fisio-Online'
 # template_2 = '0000'
