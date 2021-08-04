@@ -31,14 +31,14 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         VirtualSessionVideoInline,
     ]
  
-    list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started','patient_first_join','session_done','session_status_message']
+    list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started_icon','patient_first_join','session_done','session_status_message']
 
     def has_change_permission(self, request, obj=None):
         '''
             specialist can change session only if haven't started
         '''
         codename = get_permission_codename('change', self.opts)
-        has_permission = request.user.has_perm("%s.%s" % (self.opts.app_label, codename)) and  (obj.already_started == "❌" if obj else False )
+        has_permission = request.user.has_perm("%s.%s" % (self.opts.app_label, codename)) and  (not obj.already_started  if obj else False )
         if request.user.is_superuser or has_permission:
             return True
         return False
@@ -52,13 +52,21 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             return qs
         return qs.filter(specialist=request.user)
 
+    @admin.display(description='Autoización principal',)   
     def patient_first_join(self, obj):       
         '''
             when a patient have joined on sand box of filling some concent 
             to recieve notifications and messages.
         ''' 
         return "✅" if obj.patient.first_join  else "❌"
-    patient_first_join.short_description = 'Autoización principal' 
+
+    @admin.display(description='Sesión iniciada',)   
+    def already_started_icon(self, obj):       
+        '''
+            when a patient have joined on sand box of filling some concent 
+            to recieve notifications and messages.
+        ''' 
+        return "✅" if obj.already_started  else "❌"
 
     
     def change_view(self, request, object_id, extra_content=None):

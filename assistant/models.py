@@ -13,12 +13,17 @@ class Video(BaseModel):
     description = models.TextField(
         max_length=4096, blank=True, verbose_name="Descripción"
     )
+    def __str__(self):
+        return f"{self.title}"
     
 class VirtualSession(BaseModel):    
     patient = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Paciente", related_name='patient', null=True)
     specialist = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Especialista",related_name='specialist', null=True)
     description_message = models.TextField(max_length=1024, verbose_name="Mensaje de asistencia", blank = True, default="")
     start_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo de Inicio" )    
+    session_duration = models.IntegerField(verbose_name="Duración de la sesión en minutos", default=60 )    
+
+
     session_status_message = models.CharField(max_length=256, verbose_name="Stado de la sesión", default="La sesión ha sido programada.")
     session_done = models.BooleanField(default=False, verbose_name="La sesión ha finalizado")
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
@@ -27,11 +32,26 @@ class VirtualSession(BaseModel):
     
     @cached_property
     def already_started(self):
-        return "✅" if self.start_time < timezone.now()  else "❌"
+        return True if timezone.now() > self.start_time  else False
+
+    def session_expired(self):
+        if  timezone.now() > self.start_time + timezone.delta(minutes=self.session_duration) and not self.session_done:
+            self.session_done = True
+            self.save()
+            return True
+        else:
+            return False
        
 class VirtualSessionVideo(BaseModel):
     session = models.ForeignKey(VirtualSession, on_delete=models.SET_NULL, verbose_name="Id mensaje asignado", null=True)
     video = models.ForeignKey(Video, on_delete=models.SET_NULL, verbose_name="Video de ejercicios asignado", null=True)
+    
+            
+
+
+class VirtualSessionMessages(BaseModel):
+    session = models.ForeignKey(VirtualSession, on_delete=models.CASCADE, verbose_name="Id de la sesión", null=True)
+    message = models.CharField(max_length=256, verbose_name="Respuesta del paciente.")
 
 
     

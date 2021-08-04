@@ -64,20 +64,20 @@ def send_notification(send_message_timer,send_message_period):
             session = sessions[num_noti_to_send-1]
             if not session.user_notified:
                 whatsapp_number = session.patient.whatsapp_number
-                if session.patient.first_join:                      
-                    template_1 = 'this momment'
-                    template_2 = '- Responda "si" o "no" para continuar la conversación'
-                    body = f'Your appointment is coming up on {template_1} at {template_2}'
-                    message=send_message(body, whatsapp_number)
-                        
-                    while message.status == "queued":                            
-                        message = client.messages(message.sid).fetch()  
-                    send_message_timer = time.time()
+                                    
+                template_1 = 'this momment'
+                template_2 = '\n\nResponda "si" o "no" para continuar la conversación'
+                body = f'Your appointment is coming up on {template_1} at {template_2}'
+                message=send_message(body, whatsapp_number)
+                    
+                while message.status == "queued":                            
+                    message = client.messages(message.sid).fetch()  
+                send_message_timer = time.time()
 
-                    if session_without_errors(session, str(message.error_code)):      
-                        session.user_notified = True          
-                        session.session_status_message = "El usuario ha sido notificado"
-                        session.save()     
+                if session_without_errors(session, str(message.error_code)):      
+                    session.user_notified = True          
+                    session.session_status_message = "El usuario ha sido notificado"
+                    session.save()     
                         
             else:
                 session.user_notified = True          

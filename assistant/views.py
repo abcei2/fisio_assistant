@@ -37,15 +37,16 @@ def bot(request):
             if 'si' in words:   
 
                 for session in started_sessions:
-                    body += f"*Bienvenido {session.patient.first_name} a su sesión virtual de hoy* \n" #
-                    body += f"Con el especialista *{session.specialist.first_name}*\n"
+                    body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
+                    body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
 
                     if session.description_message:
                         body += f"A continuación las indicaciones del especialista\n"
-                        body += f"{session.description_message}\n"
-
+                        body += f"{session.description_message}\n\n"
+                    counter=1
                     for virtualsessionvideo in session.virtualsessionvideo_set.all():
-                        body += f"{virtualsessionvideo.video.source_link}\n" 
+                        body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
+                        counter=counter+1
                     
                     session.user_notified = True   
                     session.user_authorized = True   
