@@ -92,8 +92,9 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         """
             when user are specialist save himself
         """
-        if str(list(request.user.groups.all())[0]) == "specialist":
-            obj.specialist = request.user      
+        if len(list(request.user.groups.all()))>0:
+            if str(list(request.user.groups.all())[0]) == "specialist":
+                obj.specialist = request.user      
         obj.save()
 
 @admin.register(Video)
