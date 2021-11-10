@@ -5,6 +5,7 @@ import time
 from ui.models import User
 
 from twilio.rest import Client
+import os
 
 ERROR_CODES={
     "63015":"Phone must join on sandbox",
@@ -14,8 +15,10 @@ ERROR_CODES={
 }
 # Find your Account SID and Auth Token at twilio.com/console
 # and set the environment variables. See http://twil.io/secure
-account_sid = ""
-auth_token = ""
+
+# Get environment variables
+account_sid = os.getenv('TWILIO_SSID')
+auth_token = os.environ.get('TWILIO_TOKEN')
 client = Client(account_sid, auth_token)
 # template_1 = 'Fisio-Online'
 # template_2 = '0000'
