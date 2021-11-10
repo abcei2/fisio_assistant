@@ -22,7 +22,7 @@ MAXIMUM_MESSAGE_LENGTH = 1600
 @csrf_exempt 
 def bot(request):
     incoming_msg = unidecode.unidecode(request.POST.get('Body').lower())
-    
+    print(incoming_msg)
     from_who = request.POST.get('From').lower()
     ammount_words = len(incoming_msg.split())
     words = incoming_msg.split()
