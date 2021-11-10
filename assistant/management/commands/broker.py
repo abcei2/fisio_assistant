@@ -46,7 +46,7 @@ def session_without_errors(session, error_code):
     else:        
         return True
 
-def send_message(body, recipient, sender="4155238886",rec_county_id="+57",sender_county_id="+1"):    
+def send_message(body, recipient, sender="3213166140",rec_county_id="+57",sender_county_id="+1"):    
     message = client.messages.create(
         from_=f'whatsapp:{sender_county_id}{sender}',
         body=body,
@@ -65,9 +65,7 @@ def send_notification(send_message_timer,send_message_period):
             if not session.user_notified:
                 whatsapp_number = session.patient.whatsapp_number
                                     
-                template_1 = 'this momment'
-                template_2 = '\n\nResponda "si" o "no" para continuar la conversación'
-                body = f'Your appointment is coming up on {template_1} at {template_2}'
+                body = f'Tu sesión de terapia está por comenzar. ¿Estás preparado?'
                 message=send_message(body, whatsapp_number)
                     
                 while message.status == "queued":                            
