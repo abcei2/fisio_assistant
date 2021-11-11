@@ -38,7 +38,7 @@ def bot(request):
     started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done]
     if len(started_sessions) > 0:
         if ammount_words==1: 
-            if 'si' in words or 'si, estoy listo' in words:   
+            if 'si' in words or 'si, estoy listo' in incoming_msg:   
 
                 for session in started_sessions:
                     body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
@@ -62,7 +62,7 @@ def bot(request):
                     session.patient.authorized = True  
                     session.patient.authorization_time = timezone.now()
                     session.patient.save()
-            elif 'no' in words or 'no, necesito ayuda' in words:
+            elif 'no' in words or 'no, necesito ayuda' in incoming_msg:
                 
                 for session in started_sessions:
                     session.user_notified = True   
