@@ -4,6 +4,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 import requests
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from assistant.models import VirtualSession
 from django.utils import timezone
@@ -20,6 +21,7 @@ MAXIMUM_MESSAGE_LENGTH = 1600
 # 2). Intentar enviar el video
 
 @csrf_exempt 
+@require_http_methods([ "POST"])
 def bot(request):
     incoming_msg = unidecode.unidecode(request.POST.get('Body').lower())
     print(incoming_msg)
