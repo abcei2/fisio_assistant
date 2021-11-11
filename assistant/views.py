@@ -37,43 +37,42 @@ def bot(request):
     
     started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done]
     if len(started_sessions) > 0:
-        if ammount_words==1: 
-            if 'si' in words or 'si, estoy listo' == incoming_msg:   
+        if 'si' in words or 'si, estoy listo' in incoming_msg:   
 
-                for session in started_sessions:
-                    body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
-                    body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
+            for session in started_sessions:
+                body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
+                body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
 
-                    if session.description_message:
-                        body += f"A continuación las indicaciones del especialista\n"
-                        body += f"{session.description_message}\n\n"
-                    counter=1
-                    for virtualsessionvideo in session.virtualsessionvideo_set.all():
-                        body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
-                        counter=counter+1
-                    
-                    session.user_notified = True   
-                    session.user_authorized = True   
-                    session.session_done = True   
-                    session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
-                    session.save()
-                    
-                    session.patient.first_join = True     
-                    session.patient.authorized = True  
-                    session.patient.authorization_time = timezone.now()
-                    session.patient.save()
-            elif 'no' in words or 'no, necesito ayuda' == incoming_msg:
+                if session.description_message:
+                    body += f"A continuación las indicaciones del especialista\n"
+                    body += f"{session.description_message}\n\n"
+                counter=1
+                for virtualsessionvideo in session.virtualsessionvideo_set.all():
+                    body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
+                    counter=counter+1
                 
-                for session in started_sessions:
-                    session.user_notified = True   
-                    session.user_authorized = False   
-                    session.session_done = True   
-                    session.session_status_message =  "El usuario no acepta continuar con la sesión"
-                    session.save()
-                    
-                    session.patient.authorized = False              
-                    session.patient.save()
-                body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
+                session.user_notified = True   
+                session.user_authorized = True   
+                session.session_done = True   
+                session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
+                session.save()
+                
+                session.patient.first_join = True     
+                session.patient.authorized = True  
+                session.patient.authorization_time = timezone.now()
+                session.patient.save()
+        elif 'no' in words or 'no, necesito ayuda' in incoming_msg:
+            
+            for session in started_sessions:
+                session.user_notified = True   
+                session.user_authorized = False   
+                session.session_done = True   
+                session.session_status_message =  "El usuario no acepta continuar con la sesión"
+                session.save()
+                
+                session.patient.authorized = False              
+                session.patient.save()
+            body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
     else:
