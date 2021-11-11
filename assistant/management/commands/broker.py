@@ -79,6 +79,8 @@ def send_notification(send_message_timer,send_message_period):
                     session.user_notified = True          
                     session.session_status_message = "El usuario ha sido notificado"
                     session.save()     
+                    session.patient.no_session_message=False
+                    session.patient.save()
                         
             else:
                 session.user_notified = True          

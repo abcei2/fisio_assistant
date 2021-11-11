@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from assistant.models import VirtualSession
+from ui.models import User
 from django.utils import timezone
 import unidecode
 
@@ -16,7 +17,6 @@ import unidecode
 account_sid = ""
 auth_token = ""
 MAXIMUM_MESSAGE_LENGTH = 1600 
-"""Your appointment is coming up on {{1}} at {{2}}"""
 # 1). Sacar número del que envia.
 # 2). Intentar enviar el video
 
@@ -25,15 +25,17 @@ MAXIMUM_MESSAGE_LENGTH = 1600
 def bot(request):
     incoming_msg = unidecode.unidecode(request.POST.get('Body').lower())
     print(incoming_msg)
-    from_who = request.POST.get('From').lower()
+    from_number = request.POST.get('From').lower()
+    from_number =  from_number[12:]
     ammount_words = len(incoming_msg.split())
     words = incoming_msg.split()
 
     body = "" 
     resp = MessagingResponse()
     msg = resp.message()
+
     
-    started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_who[12:] and obj.already_started and not obj.session_done]
+    started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done]
     if len(started_sessions) > 0:
         if ammount_words==1: 
             if 'si' in words or 'si, estoy listo' in words:   
@@ -68,13 +70,24 @@ def bot(request):
                     session.session_done = True   
                     session.session_status_message =  "El usuario no acepta continuar con la sesión"
                     session.save()
+                    
                     session.patient.authorized = False              
                     session.patient.save()
                 body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
+    else:
+        try:
+            user_writing=User.objects.get(whatsapp_number=from_number)
+            if not user_writing.no_session_message:
+                body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+                user_writing.no_session_message=True
+                user_writing.save()
+        except DoesNotExist:
+            print("No existe usuario registrado con este número.")
+        
+    
     msg.body(body)
-    print(body)
     if body:
         return HttpResponse(str(resp))
     else:

@@ -14,7 +14,8 @@ class User(AbstractUser, BaseModel):
     whatsapp_number = models.CharField(max_length=32, unique=True)    
     authorized = models.BooleanField(default=False, verbose_name="Se recibe confirmación para mensajería libre/acepta términos")
     first_join = models.BooleanField(default=True, verbose_name="El usuario ha autorizado recibir mensajes")
-
+    no_session_message = models.BooleanField(default=False, verbose_name="Responder mensaje de no sesión")
+    
     authorization_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = now )    
 
     def free_way_messages(self):
