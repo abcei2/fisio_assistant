@@ -50,7 +50,7 @@ def bot(request):
                 for virtualsessionvideo in session.virtualsessionvideo_set.all():
                     body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
                     counter=counter+1
-                
+                body +=f"\n Si tiene alguna duda con los ejercicios asignados comuniquese directamente con el especialista, hasta luego."
                 session.user_notified = True   
                 session.user_authorized = True   
                 session.session_done = True   
