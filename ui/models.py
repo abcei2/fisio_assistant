@@ -35,6 +35,7 @@ class User(AbstractUser, BaseModel):
             
     def send_no_session_message(self):
         if  self.no_session_message_count < MAX_NO_SESSION_MESSAGES:
+            print("self.no_session_message_count", self.no_session_message_count)
             self.no_session_message_count = self.no_session_message_count +  1
             self.save()
             return True
