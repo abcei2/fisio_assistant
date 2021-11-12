@@ -73,7 +73,7 @@ def bot(request):
                 session.patient.authorization_time = timezone.now()
                 session.patient.save()
 
-                save_commentary(commentary_session,incoming_msg)
+                save_commentary(session,incoming_msg)
         elif 'no' in words or 'no, necesito ayuda' in incoming_msg:
             
             for session in started_sessions:
@@ -85,7 +85,7 @@ def bot(request):
                 
                 session.patient.authorized = False              
                 session.patient.save()
-                
+
                 save_commentary(session,incoming_msg)
             body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
             
