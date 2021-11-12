@@ -20,9 +20,9 @@ class User(AbstractUser, BaseModel):
     
     
     no_session_message_count = models.IntegerField(default=False, verbose_name="Cuenta la cantidad de mensajes que se responde al usuario")
-    last_time_block = models.DateTimeField(auto_now_add=False, verbose_name="Ultima fecha en la que el usuario fue bloqueado")
+    last_time_block = models.DateTimeField( verbose_name="Ultima fecha en la que el usuario fue bloqueado", null=True)
     
-    authorization_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = now )    
+    authorization_time = models.DateTimeField(verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = now )    
 
     def free_way_messages(self):
         if  timezone.now() > self.authorization_time+ timezone.timedelta(days=1):
