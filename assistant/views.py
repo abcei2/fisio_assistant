@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from assistant.models import VirtualSession
+from assistant.models import VirtualSession, VirtualSessionMessages
 from ui.models import User
 from django.utils import timezone
 import unidecode
@@ -35,7 +35,7 @@ def bot(request):
     msg = resp.message()
 
     
-    started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done]
+    started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done and not obj.commentary_messages_section]
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
 
@@ -50,10 +50,10 @@ def bot(request):
                 for virtualsessionvideo in session.virtualsessionvideo_set.all():
                     body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
                     counter=counter+1
-                body +=f"\n Si tiene alguna duda con los ejercicios asignados comuniquese directamente con el especialista, hasta luego."
+                body +=f"\n Si tiene algun comentario sobre la sesión porfavor escribalo acontinuación."
                 session.user_notified = True   
                 session.user_authorized = True   
-                session.session_done = True   
+                session.commentary_messages_section = True   
                 session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
                 session.save()
                 
@@ -66,13 +66,14 @@ def bot(request):
             for session in started_sessions:
                 session.user_notified = True   
                 session.user_authorized = False   
-                session.session_done = True   
+                session.commentary_messages_section = True   
                 session.session_status_message =  "El usuario no acepta continuar con la sesión"
                 session.save()
                 
                 session.patient.authorized = False              
                 session.patient.save()
             body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
+            
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
     else:
@@ -83,9 +84,28 @@ def bot(request):
 
         except DoesNotExist:
             print("No existe usuario registrado con este número.")
-        
-    
+
+    started_commentary_sessions = [
+        obj for obj in VirtualSession.objects.all() 
+        if obj.patient.whatsapp_number == from_number and obj.already_started
+        and not obj.session_done and obj.commentary_messages_section
+    ]
+    if len(started_sessions) > 0:
+        if started_commentary_sessions:
+            for commentary_session in started_commentary_sessions:
+                commentary=VirtualSessionMessages()
+                commentary.session = commentary_session
+                commentary.message = incoming_msg
+                commentary.save()
+                
+                commentary_session.session_done = True   
+                commentary_session.session_status_message +=  "\nUser send commentary."
+                commentary_session.save()
+                
+
     msg.body(body)
+
+
     if body:
         return HttpResponse(str(resp))
     else:

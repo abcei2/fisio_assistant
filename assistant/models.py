@@ -29,11 +29,12 @@ class VirtualSession(BaseModel):
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
     user_authorized = models.BooleanField(default=False, verbose_name="Confirmación del usuario")
 
+    commentary_messages_section = models.BooleanField(default=False, verbose_name="Indica cuando un usuario puede ingresar comentarios")
     
     @cached_property
     def already_started(self):
         return True if timezone.now() > self.start_time  else False
-
+        
     def session_expired(self):
         if  timezone.now() > self.start_time + timezone.delta(minutes=self.session_duration) and not self.session_done:
             self.session_done = True
