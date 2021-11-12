@@ -20,6 +20,11 @@ MAXIMUM_MESSAGE_LENGTH = 1600
 # 1). Sacar número del que envia.
 # 2). Intentar enviar el video
 
+def save_commentary(session,message):       
+    commentary=VirtualSessionMessages()
+    commentary.session = session
+    commentary.message = message
+    commentary.save()
 @csrf_exempt 
 @require_http_methods([ "POST"])
 def bot(request):
@@ -39,18 +44,7 @@ def bot(request):
         if obj.patient.whatsapp_number == from_number and obj.already_started
         and not obj.session_done and obj.commentary_messages_section
     ]
-    if len(started_commentary_sessions) > 0:
-        if started_commentary_sessions:
-            for commentary_session in started_commentary_sessions:
-                commentary=VirtualSessionMessages()
-                commentary.session = commentary_session
-                commentary.message = incoming_msg
-                commentary.save()
-                
-                commentary_session.session_done = True   
-                commentary_session.session_status_message +=  "\nUser send commentary."
-                commentary_session.save()
-                
+   
     
     started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done and not obj.commentary_messages_section]
     if len(started_sessions) > 0:
@@ -78,6 +72,8 @@ def bot(request):
                 session.patient.authorized = True  
                 session.patient.authorization_time = timezone.now()
                 session.patient.save()
+
+                save_commentary(commentary_session,incoming_msg)
         elif 'no' in words or 'no, necesito ayuda' in incoming_msg:
             
             for session in started_sessions:
@@ -89,20 +85,36 @@ def bot(request):
                 
                 session.patient.authorized = False              
                 session.patient.save()
+                
+                save_commentary(session,incoming_msg)
             body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
             
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
+
+            
+        
     else:
-        try:
-            user_writing=User.objects.get(whatsapp_number=from_number)
-            if user_writing.send_no_session_message():
-                body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+        if len(started_commentary_sessions) > 0:
+            if started_commentary_sessions:
+                for commentary_session in started_commentary_sessions:                    
+                    save_commentary(commentary_session,incoming_msg)
+                    
+                    commentary_session.session_done = True   
+                    commentary_session.session_status_message +=  "\nUser send commentary."
+                    commentary_session.save()
+                    
+                    
+            body +="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
+        else:
+                
+            try:
+                user_writing=User.objects.get(whatsapp_number=from_number)
+                if user_writing.send_no_session_message():
+                    body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
 
-        except DoesNotExist:
-            print("No existe usuario registrado con este número.")
-
-   
+            except DoesNotExist:
+                print("No existe usuario registrado con este número.")
 
     msg.body(body)
 
