@@ -1,11 +1,20 @@
 from django.contrib import admin
 from django.db import models
 from django import forms
-from assistant.models import Video, Entity, VirtualSession, VirtualSessionVideo
+from assistant.models import Video, Entity, VirtualSession, VirtualSessionVideo, VirtualSessionMessages
 from ui.models import User
 from django.contrib.admin.helpers import ActionForm
 from django.forms import TextInput, Textarea
 from django.contrib.auth import get_permission_codename
+
+class VirtualSessionMessagesInline(admin.TabularInline):
+    model = VirtualSessionMessages
+    classes = ["collapse"]
+    extra = 0
+    formfield_overrides = {
+        models.CharField: {"widget": TextInput(attrs={"size": "20"})},
+        models.TextField: {"widget": Textarea(attrs={"rows": 4, "cols": 40})},
+    }
 
 
 class VirtualSessionVideoInline(admin.TabularInline):
@@ -28,7 +37,8 @@ class VirtualSessionForm(forms.ModelForm):
 class VirtualSessionAdmin(admin.ModelAdmin):
     form = VirtualSessionForm
     inlines = [
-        VirtualSessionVideoInline,
+        VirtualSessionVideoInline, 
+        VirtualSessionMessagesInline
     ]
  
     list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started_icon','patient_first_join','session_done','session_status_message']
