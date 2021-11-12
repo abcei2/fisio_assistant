@@ -39,7 +39,7 @@ def bot(request):
         if obj.patient.whatsapp_number == from_number and obj.already_started
         and not obj.session_done and obj.commentary_messages_section
     ]
-    if len(started_sessions) > 0:
+    if len(started_commentary_sessions) > 0:
         if started_commentary_sessions:
             for commentary_session in started_commentary_sessions:
                 commentary=VirtualSessionMessages()
