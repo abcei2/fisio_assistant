@@ -65,7 +65,7 @@ class UserAdmin(admin.ModelAdmin):
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
              
-                    self.fields = ('whatsapp_number','legal_id','first_name', 'last_name','first_join' )
+                    self.fields = ('whatsapp_number','legal_id','first_name', 'last_name','first_join','no_session_message_count' )
         else: 
             
             self.fields = ( )
