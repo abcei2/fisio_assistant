@@ -6,7 +6,7 @@ from core.model_utils import BaseModel
 from django.utils import timezone
 
 
-MAX_NO_SESSION_MESSAGES=5
+MAX_NO_SESSION_MESSAGES=1
 TIME_TO_UNBLOCK=10
 class Entity(BaseModel):
     legal_id = models.CharField(max_length=64, unique=True)
@@ -19,7 +19,7 @@ class User(AbstractUser, BaseModel):
     first_join = models.BooleanField(default=True, verbose_name="El usuario ha autorizado recibir mensajes")
     
     
-    no_session_message_count = models.IntegerField(default=False, verbose_name="Cuenta la cantidad de mensajes que se responde al usuario")
+    no_session_message_count = models.IntegerField(default=0, verbose_name="Cuenta la cantidad de mensajes que se responde al usuario")
     last_time_block = models.DateTimeField( verbose_name="Ultima fecha en la que el usuario fue bloqueado", null=True)
     
     authorization_time = models.DateTimeField(verbose_name="Tiempo en que el usuario autoriza recibir mensajes", default = now )    
