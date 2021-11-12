@@ -78,10 +78,9 @@ def bot(request):
     else:
         try:
             user_writing=User.objects.get(whatsapp_number=from_number)
-            if not user_writing.no_session_message:
+            if not user_writing.send_no_session_message:
                 body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
-                user_writing.no_session_message=True
-                user_writing.save()
+
         except DoesNotExist:
             print("No existe usuario registrado con este número.")
         
