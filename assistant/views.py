@@ -58,7 +58,6 @@ def bot(request):
 
 
 
-    started_sessions = [obj for obj in VirtualSession.objects.all() ]
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
 
