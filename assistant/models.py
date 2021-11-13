@@ -43,9 +43,8 @@ class VirtualSession(BaseModel):
             self.is_session_expired=True
             self.save()
             self.session_status_message += "\nLa sesión ha expirado."
-            return True
-        else:
-            return False
+   
+        return  self.is_session_expired
        
 class VirtualSessionVideo(BaseModel):
     session = models.ForeignKey(VirtualSession, on_delete=models.SET_NULL, verbose_name="Id mensaje asignado", null=True)

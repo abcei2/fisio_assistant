@@ -83,7 +83,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         '''
             when a session expires
         ''' 
-        return "✅" if obj.is_session_expired  else "❌"
+        return "✅" if obj.session_expired  else "❌"
 
     
     def change_view(self, request, object_id, extra_content=None):
