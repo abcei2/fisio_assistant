@@ -48,7 +48,7 @@ def bot(request):
     started_sessions=[]
     for obj in VirtualSession.objects.all():
 
-        if not obj.session_expired() and \
+        if not obj.session_expired and \
             obj.patient.whatsapp_number == from_number and \
             obj.already_started and \
             not obj.session_done and \

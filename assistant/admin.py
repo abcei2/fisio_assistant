@@ -41,7 +41,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
         VirtualSessionMessagesInline
     ]
  
-    list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started_icon','patient_first_join','session_done','session_status_message']
+    list_display = ['specialist','patient', 'user_authorized','user_notified','start_time','already_started_icon','patient_first_join','session_done','session_expired_icon','session_status_message']
 
     def has_change_permission(self, request, obj=None):
         '''
@@ -77,6 +77,13 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             to recieve notifications and messages.
         ''' 
         return "✅" if obj.already_started  else "❌"
+        
+    @admin.display(description='Sesión caducada',)   
+    def session_expired_icon(self, obj):       
+        '''
+            when a session expires
+        ''' 
+        return "✅" if obj.session_expired  else "❌"
 
     
     def change_view(self, request, object_id, extra_content=None):

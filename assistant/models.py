@@ -35,6 +35,7 @@ class VirtualSession(BaseModel):
     def already_started(self):
         return True if timezone.now() > self.start_time  else False
         
+    @cached_property
     def session_expired(self):
         if  timezone.now() > self.start_time + timezone.delta(minutes=self.session_duration) and not self.session_done:
             self.session_done = True
