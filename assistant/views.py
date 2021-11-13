@@ -32,7 +32,6 @@ def bot(request):
     print(incoming_msg)
     from_number = request.POST.get('From').lower()
     from_number =  from_number[12:]
-    ammount_words = len(incoming_msg.split())
     words = incoming_msg.split()
 
     body = "" 
@@ -45,8 +44,21 @@ def bot(request):
         and not obj.session_done and obj.commentary_messages_section
     ]
    
-    
-    started_sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.whatsapp_number == from_number and obj.already_started and not obj.session_done and not obj.commentary_messages_section]
+
+    started_sessions=[]
+    for obj in VirtualSession.objects.all():
+
+        if not obj.session_expired() and \
+            obj.patient.whatsapp_number == from_number and \
+            obj.already_started and \
+            not obj.session_done and \
+            not obj.commentary_messages_section:
+
+            started_sessions.append(obj)
+
+
+
+    started_sessions = [obj for obj in VirtualSession.objects.all() ]
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
 

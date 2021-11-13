@@ -85,7 +85,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             groups=list(request.user.groups.all())
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
-                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
+                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section' )
             
         return super(VirtualSessionAdmin, self).change_view(request, object_id)
 
@@ -95,7 +95,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             groups=list(request.user.groups.all())
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
-                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified', )
+                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section' )
         return super(VirtualSessionAdmin, self).add_view(request)
 
     def save_model(self, request, obj, form, change):
