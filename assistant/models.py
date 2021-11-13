@@ -50,6 +50,8 @@ class VirtualSessionVideo(BaseModel):
     session = models.ForeignKey(VirtualSession, on_delete=models.SET_NULL, verbose_name="Id mensaje asignado", null=True)
     video = models.ForeignKey(Video, on_delete=models.SET_NULL, verbose_name="Video de ejercicios asignado", null=True)
     
+    def __str__(self):
+        return f"{self.video.title}"
             
 
 

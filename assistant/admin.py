@@ -6,6 +6,7 @@ from ui.models import User
 from django.contrib.admin.helpers import ActionForm
 from django.forms import TextInput, Textarea
 from django.contrib.auth import get_permission_codename
+from django.utils.safestring import mark_safe
 
 class VirtualSessionMessagesInline(admin.TabularInline):
     model = VirtualSessionMessages
@@ -25,6 +26,13 @@ class VirtualSessionVideoInline(admin.TabularInline):
         models.CharField: {"widget": TextInput(attrs={"size": "20"})},
         models.TextField: {"widget": Textarea(attrs={"rows": 4, "cols": 40})},
     }
+    
+      
+    readonly_fields = ['video_title']
+
+    @admin.display(description='Link del video')
+    def video_title(self, obj):
+        return mark_safe('<a href="%s">%s</a>' % (obj.video.source_link,obj.video.source_link))
 
 class VirtualSessionForm(forms.ModelForm):
     patient = forms.ModelChoiceField(queryset=User.objects.filter(groups__name='patient'), empty_label=None)
@@ -117,7 +125,13 @@ class VirtualSessionAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ['title', 'source_link']
+    list_display = ['title', 'video_source_link']
+    
+    def video_source_link(self, obj):
+        return mark_safe('<a href="%s">%s</a>' % (obj.source_link,obj.source_link))
+    video_source_link.short_description = 'Icon'
+    video_source_link.allow_tags = True
+ 
     def add_view(self, request, extra_context=None):
         
         extra_context = extra_context or {}
