@@ -37,7 +37,7 @@ class VirtualSession(BaseModel):
         
     @cached_property
     def session_expired(self):
-        if  timezone.now() > self.start_time + timezone.delta(minutes=self.session_duration) and not self.session_done:
+        if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration) and not self.session_done:
             self.session_done = True
             self.save()
             self.session_status_message += "\nLa sesión ha expirado."
