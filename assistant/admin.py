@@ -35,6 +35,7 @@ class VirtualSessionForm(forms.ModelForm):
 
 @admin.register(VirtualSession)
 class VirtualSessionAdmin(admin.ModelAdmin):
+    ordering = ['-start_time']
     form = VirtualSessionForm
     inlines = [
         VirtualSessionVideoInline, 
