@@ -26,6 +26,7 @@ class VirtualSession(BaseModel):
 
     session_status_message = models.CharField(max_length=256, verbose_name="Stado de la sesión", default="La sesión ha sido programada.")
     session_done = models.BooleanField(default=False, verbose_name="La sesión ha finalizado")
+    is_session_expired = models.BooleanField(default=False, verbose_name="Bandera para determinar si una sesión expiró o no")
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
     user_authorized = models.BooleanField(default=False, verbose_name="Confirmación del usuario")
 
@@ -37,8 +38,9 @@ class VirtualSession(BaseModel):
         
     @cached_property
     def session_expired(self):
-        if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration):
+        if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration) and not self.session_done:
             self.session_done = True
+            self.is_session_expired=True
             self.save()
             self.session_status_message += "\nLa sesión ha expirado."
             return True
