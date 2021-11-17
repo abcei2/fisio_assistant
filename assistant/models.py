@@ -27,6 +27,8 @@ class VirtualSession(BaseModel):
     session_status_message = models.CharField(max_length=256, verbose_name="Stado de la sesión", default="La sesión ha sido programada.")
     session_done = models.BooleanField(default=False, verbose_name="La sesión ha finalizado")
     is_session_expired = models.BooleanField(default=False, verbose_name="Bandera para determinar si una sesión expiró o no")
+    
+    user_presession_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario 12 horas antes de la sesión")
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
     user_authorized = models.BooleanField(default=False, verbose_name="Confirmación del usuario")
 
@@ -35,7 +37,15 @@ class VirtualSession(BaseModel):
     @cached_property
     def already_started(self):
         return True if timezone.now() > self.start_time  else False
-        
+
+    @cached_property
+    def time_to_notify(self):
+        if timezone.now() < self.start_time-timezone.timedelta(hours=12) and not self.user_presession_notified:
+            self.user_presession_notified = True
+            self.save()
+            self.session_status_message += "\n Se envia notificación antes de la sesión."
+        return self.user_presession_notified
+      
     @cached_property
     def session_expired(self):
         if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration) and not self.session_done:
