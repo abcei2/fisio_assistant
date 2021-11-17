@@ -25,6 +25,89 @@ def save_commentary(session,message):
     commentary.session = session
     commentary.message = message
     commentary.save()
+
+def user_confirm_session(started_sessions,incoming_msg, body):
+    '''
+        Confirm each session already started for an user 
+        because there aren't in theory more than one session at time,
+        and continue to the commentary section.
+    '''
+    for session in started_sessions:
+        body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
+        body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
+
+        if session.description_message:
+            body += f"A continuación las indicaciones del especialista\n"
+            body += f"{session.description_message}\n\n"
+        counter=1
+        for virtualsessionvideo in session.virtualsessionvideo_set.all():
+            body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
+            counter=counter+1
+        body +=f"\n Si tiene algun comentario sobre la sesión porfavor escribalo acontinuación."
+        session.user_notified = True   
+        session.user_authorized = True   
+        session.commentary_messages_section = True   
+        session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
+        session.save()
+  
+        session.patient.first_join = True     
+        session.patient.authorized = True  
+        session.patient.authorization_time = timezone.now()
+        session.patient.save()
+
+        save_commentary(session,incoming_msg)
+    return body
+
+
+def user_decline_session(started_sessions, incoming_msg, body):
+    '''
+        Decline each session already started for an user 
+        because there aren't in theory more than one session at time,
+        and continue to the commentary section.
+    '''
+    for session in started_sessions:
+        session.user_notified = True   
+        session.user_authorized = False   
+        session.commentary_messages_section = True   
+        session.session_status_message =  "El usuario no acepta continuar con la sesión"
+        session.save()
+        
+        session.patient.authorized = False              
+        session.patient.save()
+
+        save_commentary(session,incoming_msg)
+    body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
+    return body
+    
+def user_commentary_session(started_commentary_sessions, incoming_msg, body):
+    '''
+        Find each session that is waiting for user end session commentary
+    '''
+    if len(started_commentary_sessions) > 0:
+        if started_commentary_sessions:
+            for commentary_session in started_commentary_sessions:                    
+                save_commentary(commentary_session,incoming_msg)                
+                commentary_session.session_done = True   
+                commentary_session.session_status_message +=  "\nUser send commentary."
+                commentary_session.save()                
+        body +="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
+    return body
+
+def no_session_avaliable(started_sessions,started_commentary_sessions,from_number, body):
+    '''
+        Send a default message to register user, do not send anything when number
+        isn't register to an user.
+    '''
+    if len(started_commentary_sessions) == 0 and len(started_sessions)== 0:           
+        try:
+            user_writing=User.objects.get(whatsapp_number=from_number)
+            if user_writing.send_no_session_message():
+                body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+        except DoesNotExist:
+            body=""
+            print("No existe usuario registrado con este número. No se le responde.")
+    return body
+
 @csrf_exempt 
 @require_http_methods([ "POST"])
 def bot(request):
@@ -38,12 +121,6 @@ def bot(request):
     resp = MessagingResponse()
     msg = resp.message()
 
-    started_commentary_sessions = [
-        obj for obj in VirtualSession.objects.all() 
-        if obj.patient.whatsapp_number == from_number and obj.already_started
-        and not obj.session_done and obj.commentary_messages_section
-    ]
-   
 
     started_sessions=[]
     for obj in VirtualSession.objects.all():
@@ -57,76 +134,26 @@ def bot(request):
             started_sessions.append(obj)
 
 
-
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
-
-            for session in started_sessions:
-                body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
-                body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
-
-                if session.description_message:
-                    body += f"A continuación las indicaciones del especialista\n"
-                    body += f"{session.description_message}\n\n"
-                counter=1
-                for virtualsessionvideo in session.virtualsessionvideo_set.all():
-                    body += f"{counter}. {virtualsessionvideo.video.title}\n{virtualsessionvideo.video.source_link}\n\n" 
-                    counter=counter+1
-                body +=f"\n Si tiene algun comentario sobre la sesión porfavor escribalo acontinuación."
-                session.user_notified = True   
-                session.user_authorized = True   
-                session.commentary_messages_section = True   
-                session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
-                session.save()
-                
-                session.patient.first_join = True     
-                session.patient.authorized = True  
-                session.patient.authorization_time = timezone.now()
-                session.patient.save()
-
-                save_commentary(session,incoming_msg)
-        elif 'no' in words or 'no, necesito ayuda' in incoming_msg:
-            
-            for session in started_sessions:
-                session.user_notified = True   
-                session.user_authorized = False   
-                session.commentary_messages_section = True   
-                session.session_status_message =  "El usuario no acepta continuar con la sesión"
-                session.save()
-                
-                session.patient.authorized = False              
-                session.patient.save()
-
-                save_commentary(session,incoming_msg)
-            body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
-            
+            user_confirm_session(started_sessions,incoming_msg, body)           
+        elif 'no' in words or 'no, necesito ayuda' in incoming_msg:            
+            user_decline_session(started_sessions,incoming_msg, body)            
         else:
-            body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."
+            body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."    
 
-            
-        
-    else:
-        if len(started_commentary_sessions) > 0:
-            if started_commentary_sessions:
-                for commentary_session in started_commentary_sessions:                    
-                    save_commentary(commentary_session,incoming_msg)
-                    
-                    commentary_session.session_done = True   
-                    commentary_session.session_status_message +=  "\nUser send commentary."
-                    commentary_session.save()
-                    
-                    
-            body +="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
-        else:
-                
-            try:
-                user_writing=User.objects.get(whatsapp_number=from_number)
-                if user_writing.send_no_session_message():
-                    body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+    started_commentary_sessions = [
+        obj for obj in VirtualSession.objects.all() 
+        if obj.patient.whatsapp_number == from_number and obj.already_started
+        and not obj.session_done and obj.commentary_messages_section
+    ]   
 
-            except DoesNotExist:
-                print("No existe usuario registrado con este número.")
+    user_commentary_session(started_commentary_sessions, incoming_msg, body)
 
+    no_session_avaliable(started_sessions,started_commentary_sessions,from_number, body)
+
+  
+   
     msg.body(body)
 
 
