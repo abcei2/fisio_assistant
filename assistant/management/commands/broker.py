@@ -29,21 +29,12 @@ client = Client(account_sid, auth_token)
 # )
 
 def session_without_errors(session, error_code):
-    if error_code== "63015":  
-        session.patient.first_join = False     
-        session.patient.authorized = False                
-        session.patient.save()     
-        session.user_notified = False   
-        session.user_authorized = False   
-        session.session_status_message =  ERROR_CODES["63015"]
-        session.save()                 
-        return False
-    elif error_code == "63016":         
+    if error_code == "63016":         
         session.patient.authorized = False     
         session.patient.save()    
         session.user_notified = False       
         session.user_authorized = False      
-        session.session_status_message =  ERROR_CODES["63016"] 
+        session.session_status_message =  ERROR_CODES[error_code] 
         session.save()    
         return False 
     else:        
@@ -59,7 +50,14 @@ def send_message(body, recipient, sender="3213166140",rec_county_id="+57",sender
     
 def send_notification(send_message_timer,send_message_period):
 
-    sessions = [obj for obj in VirtualSession.objects.all() if obj.patient.first_join and obj.already_started and not obj.user_notified and not obj.user_authorized and not obj.session_done ]
+    sessions = [
+        obj for obj in VirtualSession.objects.all()
+            if obj.already_started and 
+                not obj.first_join and 
+                not obj.user_notified and 
+                not obj.user_authorized and 
+                not obj.session_done 
+    ]
     num_noti_to_send = len(sessions)
     while num_noti_to_send>0:
 
