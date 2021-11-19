@@ -26,12 +26,13 @@ def save_commentary(session,message):
     commentary.message = message
     commentary.save()
 
-def user_confirm_session(started_sessions,incoming_msg, body):
+def user_confirm_session(started_sessions,incoming_msg):
     '''
         Confirm each session already started for an user 
         because there aren't in theory more than one session at time,
         and continue to the commentary section.
     '''
+    body=""
     for session in started_sessions:
         body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
         body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
@@ -59,12 +60,13 @@ def user_confirm_session(started_sessions,incoming_msg, body):
     return body
 
 
-def user_decline_session(started_sessions, incoming_msg, body):
+def user_decline_session(started_sessions, incoming_msg):
     '''
         Decline each session already started for an user 
         because there aren't in theory more than one session at time,
         and continue to the commentary section.
     '''
+    body=""
     for session in started_sessions:
         session.user_notified = True   
         session.user_authorized = False   
@@ -79,11 +81,13 @@ def user_decline_session(started_sessions, incoming_msg, body):
     body += "Muchas gracias por su tiempo, porfavor indiquenos a continuación las inquietudes que tenga."
     return body
     
-def user_commentary_session(started_commentary_sessions, incoming_msg, body):
+def user_commentary_session(started_commentary_sessions, incoming_msg):
     '''
         Find each session that is waiting for user end session commentary
     '''
+    body=""
     if len(started_commentary_sessions) > 0:
+        print("saving commentary")
         if started_commentary_sessions:
             for commentary_session in started_commentary_sessions:                    
                 save_commentary(commentary_session,incoming_msg)                
@@ -93,18 +97,18 @@ def user_commentary_session(started_commentary_sessions, incoming_msg, body):
         body +="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
     return body
 
-def no_session_avaliable(started_sessions,started_commentary_sessions,from_number, body):
+def no_session_avaliable(started_sessions,started_commentary_sessions,from_number):
     '''
         Send a default message to register user, do not send anything when number
         isn't register to an user.
     '''
+    body=""
     if len(started_commentary_sessions) == 0 and len(started_sessions)== 0:           
         try:
             user_writing=User.objects.get(whatsapp_number=from_number)
             if user_writing.send_no_session_message():
-                body += "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+                body = "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
         except DoesNotExist:
-            body=""
             print("No existe usuario registrado con este número. No se le responde.")
     return body
 
@@ -132,13 +136,13 @@ def bot(request):
             not obj.commentary_messages_section:
 
             started_sessions.append(obj)
-
+    print("SESSIONES INICIADAS:",len(started_sessions))
 
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
-            user_confirm_session(started_sessions,incoming_msg, body)           
+            body += user_confirm_session(started_sessions,incoming_msg)           
         elif 'no' in words or 'no, necesito ayuda' in incoming_msg:            
-            user_decline_session(started_sessions,incoming_msg, body)            
+            body += user_decline_session(started_sessions,incoming_msg)            
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."    
 
@@ -148,9 +152,10 @@ def bot(request):
         and not obj.session_done and obj.commentary_messages_section
     ]   
 
-    user_commentary_session(started_commentary_sessions, incoming_msg, body)
+    print("SESSIONES A LA ESPERA DE COMENTARIOS:",len(started_commentary_sessions))
+    body += user_commentary_session(started_commentary_sessions, incoming_msg)
 
-    no_session_avaliable(started_sessions,started_commentary_sessions,from_number, body)
+    body += no_session_avaliable(started_sessions,started_commentary_sessions,from_number)
 
   
    
