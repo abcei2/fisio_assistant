@@ -75,7 +75,7 @@ def send_start_session_notification(send_message_timer,send_message_period):
 
                 if session_without_errors(session, str(message.error_code)):      
                     session.user_notified = True          
-                    session.session_status_message = "El usuario ha sido notificado"
+                    session.session_status_message += "\nEl inicio de la sesión ha sido notificado al usuario"
                     session.save()            
 
             num_noti_to_send = num_noti_to_send - 1 
@@ -87,6 +87,7 @@ def send_pre_session_notification(send_message_timer,send_message_period):
     pre_sessions = [
         obj for obj in VirtualSession.objects.all()
             if obj.time_to_notify and 
+                not obj.user_presession_notified and 
                 obj.patient.first_join
     ]
     num_noti_to_send = len(pre_sessions)
@@ -96,8 +97,9 @@ def send_pre_session_notification(send_message_timer,send_message_period):
             pre_session = pre_sessions[num_noti_to_send-1]
             if not pre_session.session_expired:
                 whatsapp_number = pre_session.patient.whatsapp_number
-                                    
-                body = f'Tu sesión de terapia está por comenzar. ¿Estás preparado?'
+                first_part="12 horas"
+                second_part=f"Recuerda llevar los siguientes elementos: {pre_session.session_items}"
+                body = f'Recuerda que tu sesión de terapia comienza en {first_part}. {second_part} Si tienes alguna pregunta, no dudes en responder a este chat.'
                 message=send_message(body, whatsapp_number)
                     
                 while message.status == "queued":                            
@@ -105,8 +107,8 @@ def send_pre_session_notification(send_message_timer,send_message_period):
                 send_message_timer = time.time()
 
                 if session_without_errors(pre_session, str(message.error_code)):      
-                    pre_session.user_notified = True          
-                    pre_session.session_status_message = "El usuario ha sido notificado"
+                    pre_session.user_presession_notified = True
+                    pre_session.session_status_message += "\nEl usuario ha sido notificado 12 horas antes"
                     pre_session.save()            
 
             num_noti_to_send = num_noti_to_send - 1 
@@ -128,7 +130,7 @@ class Command(BaseCommand):
         while True:
             if time.time()-query_session_timer > query_sessions_period:
                 
-                #send_pre_session_notification(send_message_timer,send_message_period)
+                send_pre_session_notification(send_message_timer,send_message_period)
                 send_start_session_notification(send_message_timer,send_message_period)
                 query_session_timer = time.time()
 
