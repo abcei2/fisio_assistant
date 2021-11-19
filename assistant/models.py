@@ -70,12 +70,12 @@ class VirtualSession(BaseModel):
                 hours_plural="s"
                   
             if hours == "0":
-                if minutes == "00":
+                if minutes == "0":
                     return f"en menos de un minuto"
                 else:
                     return f"{minutes} minuto{minutes_plural}"
             elif hours != "0" :
-                if minutes == "00":
+                if minutes == "0":
                     return f"{hours} hora{hours_plural}"
                 else:
                     return f"{hours} hora{hours_plural} y {minutes} minuto{minutes_plural}"

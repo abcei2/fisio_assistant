@@ -105,7 +105,7 @@ def no_session_avaliable(started_sessions,started_commentary_sessions,user_writi
     body=""
     if len(started_commentary_sessions) == 0 and len(started_sessions)== 0:    
         if user_writing.send_no_session_message():
-            body = "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+            body = "Su sesión ha caducado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
 
     return body
 
