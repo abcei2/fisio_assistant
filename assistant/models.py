@@ -46,6 +46,11 @@ class VirtualSession(BaseModel):
             return True
         else:
             return False
+            
+    @cached_property
+    def time_before_start(self):
+        return self.start_time-timezone.now()  if self.start_time>timezone.now() else 0
+     
       
     @cached_property
     def session_expired(self):

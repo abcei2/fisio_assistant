@@ -97,7 +97,7 @@ def send_pre_session_notification(send_message_timer,send_message_period):
             pre_session = pre_sessions[num_noti_to_send-1]
             if not pre_session.session_expired:
                 whatsapp_number = pre_session.patient.whatsapp_number
-                first_part="12 horas"
+                first_part=pre_session.time_before_start
                 second_part=f"Recuerda llevar los siguientes elementos: {pre_session.session_items}"
                 body = f'Recuerda que tu sesión de terapia comienza en {first_part}. {second_part} Si tienes alguna pregunta, no dudes en responder a este chat.'
                 message=send_message(body, whatsapp_number)
