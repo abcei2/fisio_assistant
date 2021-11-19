@@ -17,7 +17,7 @@ class User(AbstractUser, BaseModel):
     legal_id = models.CharField(max_length=64, unique=True)
     whatsapp_number = models.CharField(max_length=32, unique=True)    
     authorized = models.BooleanField(default=False, verbose_name="Se recibe confirmación para mensajería libre/acepta términos")
-    first_join = models.BooleanField(default=True, verbose_name="El usuario ha autorizado recibir mensajes")
+    first_join = models.BooleanField(default=True, verbose_name="El usuario ha autorizado recibir mensajes (firma documento)")
     
     
     no_session_message_count = models.IntegerField(default=0, verbose_name="Cuenta la cantidad de mensajes que se responde al usuario")

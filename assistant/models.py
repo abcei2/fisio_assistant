@@ -30,7 +30,7 @@ class VirtualSession(BaseModel):
     
     user_presession_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario 12 horas antes de la sesión")
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
-    user_authorized = models.BooleanField(default=False, verbose_name="Confirmación del usuario")
+    user_authorized = models.BooleanField(default=False, verbose_name="El usuario confirma la sesión")
 
     commentary_messages_section = models.BooleanField(default=False, verbose_name="Indica cuando un usuario puede ingresar comentarios")
     
@@ -40,11 +40,11 @@ class VirtualSession(BaseModel):
 
     @cached_property
     def time_to_notify(self):
-        if timezone.now() < self.start_time-timezone.timedelta(hours=12) and not self.user_presession_notified:
-            self.user_presession_notified = True
-            self.save()
-            self.session_status_message += "\n Se envia notificación antes de la sesión."
-        return self.user_presession_notified
+        if (timezone.now() > self.start_time-timezone.timedelta(hours=12) 
+            and timezone.now() < self.start_time) and not self.user_presession_notified:
+            return True
+        else:
+            return False
       
     @cached_property
     def session_expired(self):

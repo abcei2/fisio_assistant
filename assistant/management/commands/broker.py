@@ -48,12 +48,12 @@ def send_message(body, recipient, sender="3213166140",rec_county_id="+57",sender
     )
     return message
     
-def send_notification(send_message_timer,send_message_period):
+def send_start_session_notification(send_message_timer,send_message_period):
 
     sessions = [
         obj for obj in VirtualSession.objects.all()
             if obj.already_started and 
-                not obj.first_join and 
+                obj.patient.first_join and 
                 not obj.user_notified and 
                 not obj.user_authorized and 
                 not obj.session_done 
@@ -63,7 +63,7 @@ def send_notification(send_message_timer,send_message_period):
 
         if time.time()-send_message_timer > send_message_period:
             session = sessions[num_noti_to_send-1]
-            if not session.user_notified:
+            if not session.session_expired:
                 whatsapp_number = session.patient.whatsapp_number
                                     
                 body = f'Tu sesión de terapia está por comenzar. ¿Estás preparado?'
@@ -76,16 +76,42 @@ def send_notification(send_message_timer,send_message_period):
                 if session_without_errors(session, str(message.error_code)):      
                     session.user_notified = True          
                     session.session_status_message = "El usuario ha sido notificado"
-                    session.save()     
-                        
-            else:
-                session.user_notified = True          
-                session.save()     
+                    session.save()            
 
             num_noti_to_send = num_noti_to_send - 1 
     if len(sessions)==0:
         print("Seems that all session were send")
     
+def send_pre_session_notification(send_message_timer,send_message_period):
+
+    pre_sessions = [
+        obj for obj in VirtualSession.objects.all()
+            if obj.time_to_notify and 
+                obj.patient.first_join
+    ]
+    num_noti_to_send = len(pre_sessions)
+    while num_noti_to_send>0:
+
+        if time.time()-send_message_timer > send_message_period:
+            pre_session = pre_sessions[num_noti_to_send-1]
+            if not pre_session.session_expired:
+                whatsapp_number = pre_session.patient.whatsapp_number
+                                    
+                body = f'Tu sesión de terapia está por comenzar. ¿Estás preparado?'
+                message=send_message(body, whatsapp_number)
+                    
+                while message.status == "queued":                            
+                    message = client.messages(message.sid).fetch()  
+                send_message_timer = time.time()
+
+                if session_without_errors(pre_session, str(message.error_code)):      
+                    pre_session.user_notified = True          
+                    pre_session.session_status_message = "El usuario ha sido notificado"
+                    pre_session.save()            
+
+            num_noti_to_send = num_noti_to_send - 1 
+    if len(pre_sessions)==0:
+        print("Seems that all session were send")
 
 class Command(BaseCommand):
     help = 'Displays current time'
@@ -93,7 +119,7 @@ class Command(BaseCommand):
         # Time to query virtual sessions in seconds
         query_sessions_period = 1 
         query_session_timer = time.time()
-        # Time to send any message in seconds (depends on query a virtual session)
+        # Time to send any message in seconds (depends on query a virtual session) 
         send_message_period = 1 
         send_message_timer = time.time()
         # Time to query which user is outside 24h free message sessions in seconds
@@ -102,7 +128,8 @@ class Command(BaseCommand):
         while True:
             if time.time()-query_session_timer > query_sessions_period:
                 
-                send_notification(send_message_timer,send_message_period)
+                #send_pre_session_notification(send_message_timer,send_message_period)
+                send_start_session_notification(send_message_timer,send_message_period)
                 query_session_timer = time.time()
 
             if time.time()-query_user_auth_timer > query_user_auth_period:
