@@ -6,9 +6,9 @@ from core.model_utils import BaseModel
 from django.utils import timezone
 
 
-MAX_NO_SESSION_MESSAGES=2
+MAX_NO_SESSION_MESSAGES=10
 TIME_TO_UNBLOCK=1
-MAX_SECONDS_BETWEEN_MESSAGES_RESET=20
+MAX_SECONDS_BETWEEN_MESSAGES_RESET=5
 class Entity(BaseModel):
     legal_id = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=128, unique=True, verbose_name="Nombre de entidad")
