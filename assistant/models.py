@@ -20,13 +20,14 @@ class VirtualSession(BaseModel):
     patient = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Paciente", related_name='patient', null=True)
     specialist = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Especialista",related_name='specialist', null=True)
     description_message = models.TextField(max_length=1024, verbose_name="Mensaje de asistencia", blank = True, default="")
+    session_items = models.TextField(max_length=1024, verbose_name="Elementos necesarios para le sesión", blank = True, default="")
     start_time = models.DateTimeField(auto_now_add=False, verbose_name="Tiempo de Inicio" )    
     session_duration = models.IntegerField(verbose_name="Duración de la sesión en minutos", default=60 )    
 
 
     session_status_message = models.CharField(max_length=256, verbose_name="Stado de la sesión", default="La sesión ha sido programada.")
     session_done = models.BooleanField(default=False, verbose_name="La sesión ha finalizado")
-    is_session_expired = models.BooleanField(default=False, verbose_name="Bandera para determinar si una sesión expiró o no")
+    is_session_expired = models.BooleanField(default=False, verbose_name="Bandera para indicar si una sesión expiró o no")
     
     user_presession_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario 12 horas antes de la sesión")
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
