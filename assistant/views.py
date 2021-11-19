@@ -97,19 +97,16 @@ def user_commentary_session(started_commentary_sessions, incoming_msg):
         body +="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
     return body
 
-def no_session_avaliable(started_sessions,started_commentary_sessions,from_number):
+def no_session_avaliable(started_sessions,started_commentary_sessions,user_writing):
     '''
         Send a default message to register user, do not send anything when number
         isn't register to an user.
     '''
     body=""
-    if len(started_commentary_sessions) == 0 and len(started_sessions)== 0:           
-        try:
-            user_writing=User.objects.get(whatsapp_number=from_number)
-            if user_writing.send_no_session_message():
-                body = "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
-        except DoesNotExist:
-            print("No existe usuario registrado con este número. No se le responde.")
+    if len(started_commentary_sessions) == 0 and len(started_sessions)== 0:    
+        if user_writing.send_no_session_message():
+            body = "Su sesión ha cacucado o no tiene activa ninguna sesión en el momento, porfavor comuniquese con el especialista."
+
     return body
 
 @csrf_exempt 
@@ -121,11 +118,24 @@ def bot(request):
     from_number =  from_number[12:]
     words = incoming_msg.split()
 
+    try:
+        user_writing=User.objects.get(whatsapp_number=from_number)       
+    except DoesNotExist:
+        print("No existe usuario registrado con este número. No se le responde.")
+        return HttpResponse("")
+
     body = "" 
     resp = MessagingResponse()
     msg = resp.message()
 
-
+    #FIRST ASK IF THERE ARE COMMENTRIES INCOMMING
+    started_commentary_sessions = [
+        obj for obj in VirtualSession.objects.all() 
+        if obj.patient.whatsapp_number == from_number and obj.already_started
+        and not obj.session_done and obj.commentary_messages_section
+    ] 
+    body += user_commentary_session(started_commentary_sessions, incoming_msg)
+    
     started_sessions=[]
     for obj in VirtualSession.objects.all():
 
@@ -136,7 +146,9 @@ def bot(request):
             not obj.commentary_messages_section:
 
             started_sessions.append(obj)
-    print("SESSIONES INICIADAS:",len(started_sessions))
+
+    #THEN ASK  IF THERE ARE NO SESSIONS FOR USER
+    body += no_session_avaliable(started_sessions,started_commentary_sessions,user_writing)
 
     if len(started_sessions) > 0:
         if 'si' in words or 'si, estoy listo' in incoming_msg:   
@@ -145,18 +157,6 @@ def bot(request):
             body += user_decline_session(started_sessions,incoming_msg)            
         else:
             body += "Porfavor indique claramente '*sí*' desea continuar con la sesión o '*no*' quiere continuar."    
-
-    started_commentary_sessions = [
-        obj for obj in VirtualSession.objects.all() 
-        if obj.patient.whatsapp_number == from_number and obj.already_started
-        and not obj.session_done and obj.commentary_messages_section
-    ]   
-
-    print("SESSIONES A LA ESPERA DE COMENTARIOS:",len(started_commentary_sessions))
-    body += user_commentary_session(started_commentary_sessions, incoming_msg)
-
-    body += no_session_avaliable(started_sessions,started_commentary_sessions,from_number)
-
   
    
     msg.body(body)
