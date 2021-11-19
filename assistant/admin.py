@@ -8,6 +8,8 @@ from django.forms import TextInput, Textarea
 from django.contrib.auth import get_permission_codename
 from django.utils.safestring import mark_safe
 
+
+EXCLUDE_FIELDS=('user_presession_notified','session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section','is_session_expired' )
 class VirtualSessionMessagesInline(admin.TabularInline):
     model = VirtualSessionMessages
     classes = ["collapse"]
@@ -101,7 +103,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             groups=list(request.user.groups.all())
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
-                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section','is_session_expired' )
+                    self.exclude = EXCLUDE_FIELDS
             
         return super(VirtualSessionAdmin, self).change_view(request, object_id)
 
@@ -111,7 +113,7 @@ class VirtualSessionAdmin(admin.ModelAdmin):
             groups=list(request.user.groups.all())
             if len(groups)>0:
                 if str(groups[0]) == "specialist":    
-                    self.exclude = ('session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section','is_session_expired' )
+                    self.exclude = EXCLUDE_FIELDS
         return super(VirtualSessionAdmin, self).add_view(request)
 
     def save_model(self, request, obj, form, change):
