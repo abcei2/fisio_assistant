@@ -52,11 +52,33 @@ class VirtualSession(BaseModel):
         if self.start_time>timezone.now():
             time_to_start = str(self.start_time-timezone.now())  
             time_to_start = time_to_start.split(".")
-            print(time_to_start)
             time_to_start = time_to_start[0].split(":") # Dropping seconds, splitting Hours and minutes
             hours = time_to_start[0]
             minutes = time_to_start[1]
-            return f"{hours} horas y {minutes} minutos"
+            hours_plural=""
+            minutes_plural=""
+            
+            if minutes[0]=="0":
+                minutes = minutes[1]
+            if minutes=="1":
+                minutes_plural=""
+            else:
+                minutes_plural="s"
+            if hours=="1":
+                hours_plural=""
+            else:
+                hours_plural="s"
+                  
+            if hours == "0":
+                if minutes == "00":
+                    return f"en menos de un minuto"
+                else:
+                    return f"{minutes} minuto{minutes_plural}"
+            elif hours != "0" :
+                if minutes == "00":
+                    return f"{hours} hora{hours_plural}"
+                else:
+                    return f"{hours} hora{hours_plural} y {minutes} minuto{minutes_plural}"
         else:
             return "unos momentos"
      
