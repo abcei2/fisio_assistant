@@ -35,7 +35,7 @@ def user_confirm_session(started_sessions,incoming_msg):
     body=""
     for session in started_sessions:
         body += f"*¡Bienvenido/a {session.patient.first_name} {session.patient.last_name} a su sesión virtual de hoy!* \n" #
-        body += f"Con el especialista *{session.specialist.first_name} {session.specialist.last_name}*\n\n"
+        body += f"Con el especialista *{session.specialist.first_name}* *{session.specialist.last_name}*\n\n"
 
         if session.description_message:
             body += f"A continuación las indicaciones del especialista\n"
