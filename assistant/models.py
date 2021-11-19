@@ -49,7 +49,11 @@ class VirtualSession(BaseModel):
             
     @cached_property
     def time_before_start(self):
-        return self.start_time-timezone.now()  if self.start_time>timezone.now() else 0
+        time_to_start = self.start_time-timezone.now()  if self.start_time>timezone.now() else 0
+        time_to_start = time_to_start.split(".")
+        hours,minutes = time_to_start[0].split() # Dropping seconds, splitting Hours and minutes
+
+        return f"{hours} horas y {minutes} minutos"
      
       
     @cached_property
