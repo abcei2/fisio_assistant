@@ -38,7 +38,17 @@ class VirtualSession(BaseModel):
     @cached_property
     def already_started(self):
         return True if timezone.now() > self.start_time  else False
-
+        
+    @cached_property
+    def session_expired(self):
+        if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration) and not self.session_done:
+            self.session_done = True
+            self.is_session_expired=True
+            self.save()
+            self.session_status_message += "\nLa sesión ha expirado."
+   
+        return  self.is_session_expired
+       
     @cached_property
     def time_to_notify(self):
         if (timezone.now() > self.start_time-timezone.timedelta(hours=12) 
@@ -83,16 +93,7 @@ class VirtualSession(BaseModel):
             return "unos momentos"
      
       
-    @cached_property
-    def session_expired(self):
-        if  timezone.now() > self.start_time + timezone.timedelta(minutes=self.session_duration) and not self.session_done:
-            self.session_done = True
-            self.is_session_expired=True
-            self.save()
-            self.session_status_message += "\nLa sesión ha expirado."
-   
-        return  self.is_session_expired
-       
+
 class VirtualSessionVideo(BaseModel):
     session = models.ForeignKey(VirtualSession, on_delete=models.SET_NULL, verbose_name="Id mensaje asignado", null=True)
     video = models.ForeignKey(Video, on_delete=models.SET_NULL, verbose_name="Video de ejercicios asignado", null=True)
