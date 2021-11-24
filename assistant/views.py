@@ -165,7 +165,7 @@ def bot(request):
     body = "" 
     resp = MessagingResponse()
     msg = resp.message()
-    
+
     '''
         PRIORITY:
             1. Ask if there are not sessions.
@@ -180,24 +180,32 @@ def bot(request):
     if body != "":
         msg.body(body)
         return HttpResponse(str(resp))
+    else:
+        print("there are session programed")
 
     body = user_session(user_writing,incoming_msg)
     
     if body != "":
         msg.body(body)
         return HttpResponse(str(resp))
+    else:
+        print("there are not session started")
     
     body = user_last_commentary_session(user_writing,incoming_msg)    
     
     if body != "":
         msg.body(body)
         return HttpResponse(str(resp))
+    else:
+        print("there are not pre commentary session started")
 
     body = use_commentary_pre_session(user_writing,incoming_msg)
 
     if body != "":
         msg.body(body)
         return HttpResponse(str(resp))
+    else:
+        print("there are not last commentary session started")
 
   
     
