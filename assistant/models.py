@@ -4,6 +4,7 @@ from core.model_utils import BaseModel
 from django.utils.functional import cached_property
 from django.utils import timezone
  
+MINUTES_BETWEEN_BOT_ANSWER = 5
 
 class Video(BaseModel):    
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE, verbose_name="Entidad")
@@ -30,11 +31,21 @@ class VirtualSession(BaseModel):
     is_session_expired = models.BooleanField(default=False, verbose_name="Bandera para indicar si una sesión expiró o no")
     
     user_presession_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario 12 horas antes de la sesión")
+    user_presession_last_answer = models.DateTimeField( verbose_name="Fecha en la que se le responde al usuario despues de un comentario entre sesión",
+                                                             null=True)
+
     user_notified = models.BooleanField(default=False, verbose_name="Notificación al usuario")
     user_authorized = models.BooleanField(default=False, verbose_name="El usuario confirma la sesión")
 
-    commentary_messages_section = models.BooleanField(default=False, verbose_name="Indica cuando un usuario puede ingresar comentarios")
+    last_commentary_message_section = models.BooleanField(default=False, verbose_name="Indica cuando un usuario puede ingresar comentario final")
     
+    @cached_property
+    def bot_answer(self):
+        if  self.user_presession_last_answer:
+            return True if self.user_presession_last_answer + MINUTES_BETWEEN_BOT_ANSWER  < timezone.now()    else False
+        else:
+            return True
+
     @cached_property
     def already_started(self):
         return True if timezone.now() > self.start_time  else False

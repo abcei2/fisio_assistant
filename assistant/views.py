@@ -47,7 +47,7 @@ def user_confirm_session(started_sessions,incoming_msg):
         body +=f"\n Si tiene algun comentario sobre la sesión porfavor escribalo acontinuación."
         session.user_notified = True   
         session.user_authorized = True   
-        session.commentary_messages_section = True   
+        session.last_commentary_message_section = True   
         session.session_status_message =  "Se envía mensaje al usuario. Sesión finalizada con éxito."
         session.save()
   
@@ -69,7 +69,7 @@ def user_decline_session(started_sessions, incoming_msg):
     for session in started_sessions:
         session.user_notified = True   
         session.user_authorized = False   
-        session.commentary_messages_section = True   
+        session.last_commentary_message_section = True   
         session.session_status_message =  "El usuario no acepta continuar con la sesión"
         session.save()
         
@@ -82,7 +82,7 @@ def user_decline_session(started_sessions, incoming_msg):
     
 def user_session(user_writing, incoming_msg):
     started_sessions = [
-        obj for obj in user_writing.patient.filter(session_done=False,commentary_messages_section=False) 
+        obj for obj in user_writing.patient.filter(session_done=False,last_commentary_message_section=False) 
         if obj.already_started and not obj.session_expired
     ] 
     body = ""
@@ -101,7 +101,7 @@ def user_last_commentary_session(user_writing, incoming_msg):
     '''
     body = ""
     started_last_commentary_sessions = [
-        obj for obj in user_writing.patient.filter(session_done=False,commentary_messages_section=True) 
+        obj for obj in user_writing.patient.filter(session_done=False,last_commentary_message_section=True) 
         if obj.already_started and not obj.session_expired
     ] 
     for session in started_last_commentary_sessions:   
@@ -122,9 +122,13 @@ def use_commentary_pre_session(user_writing, incoming_msg):
     ] 
     body = ""
     for session in started_commentary_pre_sessions:   
-        save_commentary(session,incoming_msg)                     
-        session.save()              
-        body ="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
+        
+        if session.bot_answer:     
+            session.user_presession_last_answer = timezone.now()            
+            body ="Muchas gracias por su comentario, será tenido en cuenta para mejorar nuestro servicio."
+        save_commentary(session,incoming_msg) 
+                            
+        session.save()        
         
     return body
 
