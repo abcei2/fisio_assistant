@@ -9,7 +9,7 @@ from django.contrib.auth import get_permission_codename
 from django.utils.safestring import mark_safe
 
 
-EXCLUDE_FIELDS=('user_presession_notified','session_status_message','session_done','specialist', 'user_authorized', 'user_notified','commentary_messages_section','is_session_expired' )
+EXCLUDE_FIELDS=('user_presession_notified','session_status_message','session_done','specialist', 'user_authorized', 'user_notified','last_commentary_message_section','user_presession_last_answer','is_session_expired' )
 class VirtualSessionMessagesInline(admin.TabularInline):
     model = VirtualSessionMessages
     classes = ["collapse"]
