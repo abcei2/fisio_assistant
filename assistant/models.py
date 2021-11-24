@@ -42,7 +42,7 @@ class VirtualSession(BaseModel):
     @cached_property
     def bot_answer(self):
         if  self.user_presession_last_answer:
-            return True if self.user_presession_last_answer + MINUTES_BETWEEN_BOT_ANSWER  < timezone.now()    else False
+            return True if self.user_presession_last_answer + timezone.timedelta(minutes=MINUTES_BETWEEN_BOT_ANSWER)  < timezone.now()    else False
         else:
             return True
 
